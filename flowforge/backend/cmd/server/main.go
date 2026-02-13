@@ -21,7 +21,7 @@ func main() {
 	}
 	defer database.Close()
 
-	runMigrations(cfg.DBPath)
+	runMigrations()
 
 	authService := services.NewAuthService(cfg)
 	userService := services.NewUserService()
@@ -78,36 +78,26 @@ func main() {
 	r.Run(":" + cfg.Port)
 }
 
-func runMigrations(dbPath string) {
-	db, err := database.DB.Prepare(readMigrations())
-	if err != nil {
-		log.Printf("Warning: Could not prepare migrations: %v", err)
-	}
-	_ = db
-}
-
-func readMigrations() string {
-	return `
-		CREATE TABLE IF NOT EXISTS organizations (
+func runMigrations() {
+	migrations := []string{
+		`CREATE TABLE IF NOT EXISTS organizations (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-		);
-		
-		CREATE TABLE IF NOT EXISTS users (
+		)`,
+		`CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			organization_id INTEGER NOT NULL,
 			email TEXT UNIQUE NOT NULL,
 			password_hash TEXT NOT NULL,
 			name TEXT NOT NULL,
-			role TEXT NOT NULL,
+			role TEXT NOT NULL CHECK(role IN ('admin', 'manager', 'operator', 'viewer')),
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
-		);
-		
-		CREATE TABLE IF NOT EXISTS workflow_templates (
+		)`,
+		`CREATE TABLE IF NOT EXISTS workflow_templates (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			organization_id INTEGER NOT NULL,
 			name TEXT NOT NULL,
@@ -119,28 +109,26 @@ func readMigrations() string {
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
 			FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
-		);
-		
-		CREATE TABLE IF NOT EXISTS template_stages (
+		)`,
+		`CREATE TABLE IF NOT EXISTS template_stages (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			template_id INTEGER NOT NULL,
 			name TEXT NOT NULL,
 			order_index INTEGER NOT NULL,
-			required_role TEXT NOT NULL,
-			approval_type TEXT NOT NULL,
+			required_role TEXT NOT NULL CHECK(required_role IN ('admin', 'manager', 'operator', 'viewer')),
+			approval_type TEXT NOT NULL CHECK(approval_type IN ('manual', 'auto')),
 			timeout_minutes INTEGER DEFAULT 0,
-			escalation_role TEXT,
+			escalation_role TEXT CHECK(escalation_role IN ('admin', 'manager', 'operator', 'viewer')),
 			FOREIGN KEY (template_id) REFERENCES workflow_templates(id) ON DELETE CASCADE
-		);
-		
-		CREATE TABLE IF NOT EXISTS workflow_instances (
+		)`,
+		`CREATE TABLE IF NOT EXISTS workflow_instances (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			organization_id INTEGER NOT NULL,
 			template_id INTEGER NOT NULL,
 			template_version INTEGER NOT NULL,
 			title TEXT NOT NULL,
 			current_stage_id INTEGER,
-			status TEXT NOT NULL,
+			status TEXT NOT NULL CHECK(status IN ('pending', 'approved', 'rejected', 'escalated', 'canceled', 'completed')),
 			created_by INTEGER NOT NULL,
 			assigned_to INTEGER,
 			escalated_to INTEGER,
@@ -152,9 +140,8 @@ func readMigrations() string {
 			FOREIGN KEY (template_id) REFERENCES workflow_templates(id) ON DELETE CASCADE,
 			FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
 			FOREIGN KEY (current_stage_id) REFERENCES template_stages(id) ON DELETE SET NULL
-		);
-		
-		CREATE TABLE IF NOT EXISTS audit_logs (
+		)`,
+		`CREATE TABLE IF NOT EXISTS audit_logs (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			workflow_id INTEGER NOT NULL,
 			actor_id INTEGER NOT NULL,
@@ -166,19 +153,23 @@ func readMigrations() string {
 			timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (workflow_id) REFERENCES workflow_instances(id) ON DELETE CASCADE,
 			FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE CASCADE
-		);
-		
-		CREATE TABLE IF NOT EXISTS locks (
+		)`,
+		`CREATE TABLE IF NOT EXISTS locks (
 			key TEXT PRIMARY KEY,
 			owner TEXT NOT NULL,
 			expires_at DATETIME NOT NULL
-		);
-		
-		CREATE INDEX IF NOT EXISTS idx_users_org ON users(organization_id);
-		CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-		CREATE INDEX IF NOT EXISTS idx_templates_org ON workflow_templates(organization_id);
-		CREATE INDEX IF NOT EXISTS idx_instances_org ON workflow_instances(organization_id);
-		CREATE INDEX IF NOT EXISTS idx_instances_status ON workflow_instances(status);
-		CREATE INDEX IF NOT EXISTS idx_audit_workflow ON audit_logs(workflow_id);
-	`
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_users_org ON users(organization_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`,
+		`CREATE INDEX IF NOT EXISTS idx_templates_org ON workflow_templates(organization_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_instances_org ON workflow_instances(organization_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_instances_status ON workflow_instances(status)`,
+		`CREATE INDEX IF NOT EXISTS idx_audit_workflow ON audit_logs(workflow_id)`,
+	}
+
+	for _, m := range migrations {
+		if _, err := database.DB.Exec(m); err != nil {
+			log.Printf("Migration error: %v\nSQL: %s", err, m)
+		}
+	}
 }
