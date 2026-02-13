@@ -2,8 +2,8 @@ package services
 
 import (
 	"errors"
-	"flowforge/internal/models"
-	"flowforge/internal/repository"
+	"orchestrix/internal/models"
+	"orchestrix/internal/repository"
 
 	"golang.org/x/crypto/bcrypt"
 )

@@ -1,8 +1,8 @@
 package worker
 
 import (
-	"flowforge/internal/repository"
-	"flowforge/internal/services"
+	"orchestrix/internal/repository"
+	"orchestrix/internal/services"
 	"log"
 	"strconv"
 	"time"

@@ -2,10 +2,10 @@ package services
 
 import (
 	"errors"
-	"flowforge/internal/config"
-	"flowforge/internal/middleware"
-	"flowforge/internal/models"
-	"flowforge/internal/repository"
+	"orchestrix/internal/config"
+	"orchestrix/internal/middleware"
+	"orchestrix/internal/models"
+	"orchestrix/internal/repository"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"

@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"flowforge/internal/database"
-	"flowforge/internal/models"
+	"orchestrix/internal/database"
+	"orchestrix/internal/models"
 	"time"
 )
 

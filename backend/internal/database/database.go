@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"flowforge/internal/config"
+	"orchestrix/internal/config"
 	_ "github.com/mattn/go-sqlite3"
 	"os"
 	"path/filepath"

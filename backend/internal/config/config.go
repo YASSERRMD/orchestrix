@@ -14,8 +14,8 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		Port:        getEnv("PORT", "8080"),
-		JWTSecret:   getEnv("JWT_SECRET", "flowforge-secret-key-change-in-production"),
-		DBPath:      getEnv("DB_PATH", "./flowforge.db"),
+		JWTSecret:   getEnv("JWT_SECRET", "orchestrix-secret-key-change-in-production"),
+		DBPath:      getEnv("DB_PATH", "./orchestrix.db"),
 		Environment: getEnv("ENVIRONMENT", "development"),
 	}
 }

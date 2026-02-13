@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"flowforge/internal/config"
+	"orchestrix/internal/config"
 	"net/http"
 	"strings"
 

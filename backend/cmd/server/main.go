@@ -1,12 +1,12 @@
 package main
 
 import (
-	"flowforge/internal/config"
-	"flowforge/internal/database"
-	"flowforge/internal/handlers"
-	"flowforge/internal/middleware"
-	"flowforge/internal/services"
-	"flowforge/internal/websocket"
+	"orchestrix/internal/config"
+	"orchestrix/internal/database"
+	"orchestrix/internal/handlers"
+	"orchestrix/internal/middleware"
+	"orchestrix/internal/services"
+	"orchestrix/internal/websocket"
 	"log"
 
 	"github.com/gin-gonic/gin"

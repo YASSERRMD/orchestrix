@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"flowforge/internal/middleware"
-	"flowforge/internal/services"
+	"orchestrix/internal/middleware"
+	"orchestrix/internal/services"
 
 	"github.com/gin-gonic/gin"
 )

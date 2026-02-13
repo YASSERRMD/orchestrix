@@ -1,4 +1,4 @@
-# FlowForge - Workflow & Approvals Engine
+# Orchestrix - Workflow & Approvals Engine
 
 A full-stack workflow and approvals engine with strict state transitions, role-based access, audit logs, and real-time updates.
 
@@ -13,7 +13,7 @@ A full-stack workflow and approvals engine with strict state transitions, role-b
 ## Project Structure
 
 ```
-flowforge/
+orchestrix/
 ├── backend/
 │   ├── cmd/server/         # Main application entry
 │   ├── internal/
